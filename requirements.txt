@@ -32,3 +32,4 @@ sqlparse==0.4.4
 uritemplate==4.1.1
 urllib3==2.1.0
 drf-standardized-errors==0.12.6
+gunicorn==21.2.0
