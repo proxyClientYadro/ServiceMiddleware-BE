@@ -29,9 +29,20 @@ class BotTemplate(Route):
     @staticmethod
     def __parse_name_field(name_field: str) -> dict:
         split_values = name_field.split('-')
-        fields_to_add = {
-            'bot_name': 'ChatGPT',
-            'model_name': f'{split_values[0]}{split_values[1]}'.title(),
-            'mode_name': f'{split_values[-1].capitalize()} context' if len(split_values) >= 3 else '4K context'
-        }
+
+        fields_to_add = {}
+
+        if 'gpt' in split_values:
+            fields_to_add['bot_name'] = 'ChatGPT'
+
+        fields_to_add['model_name'] = f'{split_values[0]}-{split_values[1]}'.title()
+
+        mode_value = split_values[-1]
+        if mode_value == 'turbo':
+            fields_to_add['mode_name'] = '4K context'
+        elif mode_value == '4':
+            fields_to_add['mode_name'] = '8K context'
+        else:
+            fields_to_add['mode_name'] = f'{mode_value.title()} context'
+
         return fields_to_add
