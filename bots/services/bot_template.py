@@ -37,12 +37,12 @@ class BotTemplate(Route):
 
         fields_to_add['model_name'] = f'{split_values[0]}-{split_values[1]}'.title()
 
-        mode_value = split_values[-1]
-        if mode_value == 'turbo':
+        mode_value = name_field.lower()
+        if mode_value == 'gpt-3.5-turbo':
             fields_to_add['mode_name'] = '4K context'
-        elif mode_value == '4':
+        elif mode_value == 'gpt-4':
             fields_to_add['mode_name'] = '8K context'
         else:
-            fields_to_add['mode_name'] = f'{mode_value.title()} context'
+            fields_to_add['mode_name'] = f'{split_values[-1].title()} context'
 
         return fields_to_add
