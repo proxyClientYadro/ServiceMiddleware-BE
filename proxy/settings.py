@@ -98,6 +98,9 @@ MIDDLEWARE = [
 
 REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'drf_standardized_errors.handler.exception_handler',
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+    ],
 }
 
 DRF_STANDARDIZED_ERRORS = {
@@ -205,3 +208,9 @@ SITE_ID = 1
 # CORS
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
+
+# Session Auth
+SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
+SESSION_COOKIE_NAME = 'drf-sessionid'
+SESSION_COOKIE_AGE = 604800
+SESSION_SAVE_EVERY_REQUEST = True
