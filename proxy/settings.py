@@ -210,7 +210,7 @@ CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
 # Session Auth
-SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_NAME = 'drf-sessionid'
 SESSION_COOKIE_AGE = 604800
 SESSION_SAVE_EVERY_REQUEST = True
