@@ -12,7 +12,10 @@ class Custom422Error:
     def __call__(self, request: Request):
         response = self.get_response(request)
 
-        if response.status_code == 422 and 'api/' in request.path:
-            return JsonResponse({'error': 'Unexpected Error'}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        if 'api/' in request.path:
+            if response.status_code == 422:
+                return JsonResponse({'error': 'Unexpected Error'}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+            elif response.status_code == 200:
+                return JsonResponse({'status': 'OK'}, status=status.HTTP_200_OK)
 
         return response
