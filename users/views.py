@@ -1,6 +1,7 @@
 from typing import Any
 
-from rest_framework.authentication import SessionAuthentication
+from rest_framework import status
+from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -9,6 +10,8 @@ from rest_framework.views import APIView
 from common.route import Route
 from logger.services.Logger import Logger
 from proxy.decorators import handle_json_decode_error
+from users.models import UserModel
+from users.serializer import UserSerializer
 
 
 class __BaseUserOperationView(APIView):
@@ -25,20 +28,25 @@ class __BaseUserOperationView(APIView):
         return response
 
 
-class UserRegistrationView(__BaseUserOperationView):
-    """Registers User in the third-party service"""
+class UserRegistrationView(__BaseUserOperationView, CreateAPIView):
+    """Registers User in the app and 3-rd party service"""
 
     endpoint = 'users'
+    queryset = UserModel.objects.all()
+    serializer_class = UserSerializer
 
     def post(self, request: Request, *args: Any, **kwargs: dict) -> Response:
-        return self.handle_request(request=request)
+        response = self.handle_request(request=request)
+        if response.status_code == 200:
+            return self.create(request=request, *args, **kwargs)
+        else:
+            return Response(status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 
 class LoginView(__BaseUserOperationView):
     """Login User in the third-party service"""
 
     endpoint = 'users/login'
-    authentication_classes = (SessionAuthentication,)
 
     def post(self, request: Request, *args: Any, **kwargs: dict) -> Response:
         return self.handle_request(request=request)
