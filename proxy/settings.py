@@ -94,7 +94,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'proxy.middleware.Custom422Error'
+    'proxy.middleware.HandleStatusCodes'
 ]
 
 REST_FRAMEWORK = {
