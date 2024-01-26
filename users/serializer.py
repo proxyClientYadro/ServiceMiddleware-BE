@@ -1,4 +1,4 @@
-from typing import Type
+from typing import Type, Any
 
 from rest_framework import serializers
 
@@ -16,7 +16,7 @@ class UserSerializer(serializers.ModelSerializer):
             }
         }
 
-    def create(self, validated_data) -> Type['UserModel']:
+    def create(self, validated_data: dict) -> Type['UserModel']:
         user = UserModel.objects.create_user(**validated_data)
         return user
 

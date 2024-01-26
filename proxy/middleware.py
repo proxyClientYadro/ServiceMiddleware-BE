@@ -3,15 +3,14 @@ from typing import Any
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.request import Request
-
 from rest_framework.response import Response
 
 
 class HandleStatusCodes:
-    def __init__(self, get_response: Any):
+    def __init__(self, get_response: Any) -> None:
         self.get_response = get_response
 
-    def __call__(self, request: Request):
+    def __call__(self, request: Request) -> Response:
         response = self.get_response(request)
 
         if 'api/' in request.path:

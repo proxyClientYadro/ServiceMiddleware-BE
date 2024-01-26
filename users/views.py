@@ -1,8 +1,9 @@
 from typing import Any
 
+from django.contrib.auth import authenticate, login
 from rest_framework import status
 from rest_framework.generics import CreateAPIView
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -11,9 +12,7 @@ from common.route import Route
 from logger.services.Logger import Logger
 from proxy.decorators import handle_json_decode_error
 from users.models import UserModel
-from users.serializer import UserSerializer, LoginSerializer
-
-from django.contrib.auth import authenticate, login
+from users.serializer import LoginSerializer, UserSerializer
 
 
 class BaseUserOperationView(APIView):
