@@ -19,3 +19,8 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data) -> Type['UserModel']:
         user = UserModel.objects.create_user(**validated_data)
         return user
+
+
+class LoginSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+    password = serializers.CharField(max_length=255)
