@@ -1,4 +1,5 @@
 import uuid
+from typing import Optional
 
 from django.contrib.auth.models import AbstractBaseUser
 from django.db import models
@@ -20,7 +21,7 @@ class UserModel(AbstractBaseUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
-    def set_access_token(self, access_token: str) -> None:
+    def set_access_token(self, access_token: Optional[str]) -> None:
         self.access_token = access_token
         self.save()
 

@@ -1,6 +1,6 @@
 from typing import Any
 
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from rest_framework import status
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import AllowAny
@@ -23,6 +23,9 @@ class BaseUserOperationView(APIView):
 
     @handle_json_decode_error
     def handle_request(self, request: Request) -> Response:
+        if request.user.is_authenticated:
+            request.META['HTTP_AUTHORIZATION'] = f'Bearer {request.user.access_token}'
+
         response = self.route_request(request)
         self._log_and_save(response=response)
         return response
@@ -94,7 +97,18 @@ class LogoutView(BaseUserOperationView):
     endpoint = 'users/logout'
 
     def post(self, request: Request, *args: Any, **kwargs: dict) -> Response:
-        return self.handle_request(request=request)
+        response = self.handle_request(request=request)
+        return self._logout_or_unprocessable_entity(response=response, request=request)
+
+    @staticmethod
+    def _logout_or_unprocessable_entity(response: Response, request: Request) -> Response:
+        if response.status_code == 204:
+            logout(request=request)
+            user = UserModel.objects.get(email='test_max@gmail.com')
+            user.set_access_token(access_token=None)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response(status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 
 class EmailVerificationView(BaseUserOperationView):
@@ -106,10 +120,13 @@ class EmailVerificationView(BaseUserOperationView):
         return self.handle_request(request=request)
 
 
-class EmailVerificationCheckView(EmailVerificationView):
+class EmailVerificationCheckView(BaseUserOperationView):
     """Checks email verification status"""
 
     endpoint = 'users/email-verification/check'
+
+    def get(self, request: Request, *args: Any, **kwargs: dict) -> Response:
+        return self.handle_request(request=request)
 
 
 class EmailVerificationResendView(EmailVerificationView):
@@ -117,8 +134,14 @@ class EmailVerificationResendView(EmailVerificationView):
 
     endpoint = 'users/email-verification/resend'
 
+    def post(self, request: Request, *args: Any, **kwargs: dict) -> Response:
+        return self.handle_request(request=request)
+
 
 class EmailVerificationVerifyView(EmailVerificationView):
     """Verifies email"""
 
     endpoint = 'users/email-verification/verify'
+
+    def post(self, request: Request, *args: Any, **kwargs: dict) -> Response:
+        return self.handle_request(request=request)
