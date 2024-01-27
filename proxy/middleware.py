@@ -34,4 +34,4 @@ class HandleStatusCodes:
         if response.data:
             return JsonResponse(data=response.data, status=status.HTTP_200_OK)
         else:
-            return JsonResponse(data={'status': 'OK'}, status=status.HTTP_200_OK)
+            return JsonResponse(data={'status': 'Ok'}, status=status.HTTP_200_OK)

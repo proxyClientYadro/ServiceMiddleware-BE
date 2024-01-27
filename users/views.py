@@ -3,7 +3,7 @@ from typing import Any
 from django.contrib.auth import authenticate, login
 from rest_framework import status
 from rest_framework.generics import CreateAPIView
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -20,7 +20,6 @@ class BaseUserOperationView(APIView):
 
     route_class: Any = Route
     endpoint: str = None
-    permission_classes = (IsAuthenticated,)
 
     @handle_json_decode_error
     def handle_request(self, request: Request) -> Response:
@@ -38,7 +37,7 @@ class BaseUserOperationView(APIView):
 
 
 class UserRegistrationView(BaseUserOperationView, CreateAPIView):
-    """Registers a user in the app and the 3rd-party service"""
+    """Registers user in the app and the 3rd-party service"""
 
     endpoint = 'users'
     queryset = UserModel.objects.all()
@@ -48,15 +47,18 @@ class UserRegistrationView(BaseUserOperationView, CreateAPIView):
 
     def post(self, request: Request, *args: Any, **kwargs: dict) -> Response:
         response = self.handle_request(request=request)
-        return self._create_user_or_unprocessable_entity(response=response, request=request, *args, **kwargs)
+        return self._create_user_or_return_error(response=response, request=request, *args, **kwargs)
 
-    def _create_user_or_unprocessable_entity(self,
-                                             response: Response,
-                                             request: Request,
-                                             *args: Any,
-                                             **kwargs: dict) -> Response:
-        if response.status_code == 200:
+    def _create_user_or_return_error(self,
+                                     response: Response,
+                                     request: Request,
+                                     *args: Any,
+                                     **kwargs: dict) -> Response:
+        response_status_code = response.status_code
+        if response_status_code == 200:
             return self.create(request=request, *args, **kwargs)
+        elif response_status_code == 409:
+            return Response(data={'error': 'Пользователь уже зарегистрирован'}, status=status.HTTP_409_CONFLICT)
         else:
             return Response(status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
@@ -72,13 +74,15 @@ class LoginView(BaseUserOperationView):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             response = self.handle_request(request=request)
-            return self._login_or_unprocessable_entity(response, request)
+            return self._login_or_unprocessable_entity(response=response, request=request)
 
     @staticmethod
     def _login_or_unprocessable_entity(response: Response, request: Request) -> Response:
         if response.status_code == 200:
-            user = authenticate(request, email=response.data.get('email'), password=response.data.get('password'))
+            user: UserModel = authenticate(request, email=request.data.get('email'),
+                                           password=request.data.get('password'))
             login(request=request, user=user)
+            user.set_access_token(access_token=response.data.get('result').get('access_token'))
             return Response(status=status.HTTP_200_OK)
         else:
             return Response(status=status.HTTP_422_UNPROCESSABLE_ENTITY)

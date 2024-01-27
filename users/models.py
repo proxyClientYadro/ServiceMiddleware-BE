@@ -20,5 +20,9 @@ class UserModel(AbstractBaseUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
+    def set_access_token(self, access_token: str) -> None:
+        self.access_token = access_token
+        self.save()
+
     def __str__(self) -> str:
         return f'{self.uuid} | {self.email} | {self.is_staff}'
