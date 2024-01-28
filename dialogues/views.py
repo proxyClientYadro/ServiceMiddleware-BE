@@ -4,7 +4,7 @@ from urllib.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from common.route import Route
+from common.Route import Route
 from logger.services.Logger import Logger
 from proxy.decorators import handle_json_decode_error
 
