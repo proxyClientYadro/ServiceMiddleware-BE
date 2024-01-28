@@ -26,11 +26,11 @@ class BaseUserOperationView(APIView):
         if request.user.is_authenticated:
             request.META['HTTP_AUTHORIZATION'] = f'Bearer {request.user.access_token}'
 
-        response = self.route_request(request)
+        response = self._route_request(request)
         self._log_and_save(response=response)
         return response
 
-    def route_request(self, request: Request) -> Response:
+    def _route_request(self, request: Request) -> Response:
         return self.route_class(request=request).send(endpoint=self.endpoint)
 
     @staticmethod
@@ -85,7 +85,7 @@ class LoginView(BaseUserOperationView):
             user: UserModel = authenticate(request, email=request.data.get('email'),
                                            password=request.data.get('password'))
             login(request=request, user=user)
-            user.set_access_token(access_token=response.data.get('result').get('access_token'))
+            user.set_access_token(access_token=response.data['result'].get('access_token'))
             return Response(status=status.HTTP_200_OK)
         else:
             return Response(status=status.HTTP_422_UNPROCESSABLE_ENTITY)
@@ -103,9 +103,9 @@ class LogoutView(BaseUserOperationView):
     @staticmethod
     def _logout_or_unprocessable_entity(response: Response, request: Request) -> Response:
         if response.status_code == 204:
-            logout(request=request)
-            user = UserModel.objects.get(email='test_max@gmail.com')
+            user = UserModel.objects.get(uuid=request.user.uuid)
             user.set_access_token(access_token=None)
+            logout(request=request)
             return Response(status=status.HTTP_204_NO_CONTENT)
         else:
             return Response(status=status.HTTP_422_UNPROCESSABLE_ENTITY)
