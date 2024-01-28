@@ -16,7 +16,7 @@ from users.serializer import LoginSerializer, UserSerializer
 
 
 class BaseUserOperationView(APIView):
-    """Base class for user registration and login"""
+    """Base class for users operations"""
 
     route_class: Any = Route
     endpoint: str = None
@@ -67,7 +67,7 @@ class UserRegistrationView(BaseUserOperationView, CreateAPIView):
 
 
 class LoginView(BaseUserOperationView):
-    """Login user and gets an access token from the 3rd-party service"""
+    """Login user and get an access token from the 3rd-party service"""
 
     endpoint = 'users/login'
     serializer_class = LoginSerializer
@@ -92,7 +92,7 @@ class LoginView(BaseUserOperationView):
 
 
 class LogoutView(BaseUserOperationView):
-    """Logs out a user from the third-party service"""
+    """Logout user from the app and delete acces_token from the third-party service"""
 
     endpoint = 'users/logout'
 
@@ -112,7 +112,7 @@ class LogoutView(BaseUserOperationView):
 
 
 class EmailVerificationView(BaseUserOperationView):
-    """Base class for email verification views"""
+    """Email verification view"""
 
     endpoint: str = 'email-verification/verify'
 
@@ -121,7 +121,7 @@ class EmailVerificationView(BaseUserOperationView):
 
 
 class EmailVerificationCheckView(BaseUserOperationView):
-    """Checks email verification status"""
+    """Check email verification status"""
 
     endpoint = 'users/email-verification/check'
 
@@ -130,7 +130,7 @@ class EmailVerificationCheckView(BaseUserOperationView):
 
 
 class EmailVerificationResendView(EmailVerificationView):
-    """Resends email verification"""
+    """Resend email verification"""
 
     endpoint = 'users/email-verification/resend'
 
@@ -139,7 +139,7 @@ class EmailVerificationResendView(EmailVerificationView):
 
 
 class EmailVerificationVerifyView(EmailVerificationView):
-    """Verifies email"""
+    """Verify the email"""
 
     endpoint = 'users/email-verification/verify'
 
