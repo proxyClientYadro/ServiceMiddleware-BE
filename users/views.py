@@ -3,7 +3,7 @@ from typing import Any
 from django.contrib.auth import authenticate, login, logout
 from rest_framework import status
 from rest_framework.generics import CreateAPIView
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -95,6 +95,7 @@ class LogoutView(BaseUserOperationView):
     """Logout user from the app and delete acces_token from the third-party service"""
 
     endpoint = 'users/logout'
+    permission_classes = (IsAuthenticated,)
 
     def post(self, request: Request, *args: Any, **kwargs: dict) -> Response:
         response = self.handle_request(request=request)
@@ -115,6 +116,7 @@ class EmailVerificationView(BaseUserOperationView):
     """Email verification view"""
 
     endpoint: str = 'email-verification/verify'
+    permission_classes = (IsAuthenticated,)
 
     def post(self, request: Request, *args: Any, **kwargs: dict) -> Response:
         return self.handle_request(request=request)
@@ -133,6 +135,7 @@ class EmailVerificationResendView(EmailVerificationView):
     """Resend email verification"""
 
     endpoint = 'users/email-verification/resend'
+    permission_classes = (IsAuthenticated,)
 
     def post(self, request: Request, *args: Any, **kwargs: dict) -> Response:
         return self.handle_request(request=request)
@@ -142,6 +145,7 @@ class EmailVerificationVerifyView(EmailVerificationView):
     """Verify the email"""
 
     endpoint = 'users/email-verification/verify'
+    permission_classes = (IsAuthenticated,)
 
     def post(self, request: Request, *args: Any, **kwargs: dict) -> Response:
         return self.handle_request(request=request)
