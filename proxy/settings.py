@@ -94,15 +94,21 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'proxy.middleware.HandleStatusCodes'
 ]
 
 REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'drf_standardized_errors.handler.exception_handler',
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+    ],
 }
 
 DRF_STANDARDIZED_ERRORS = {
     'ENABLE_IN_DEBUG_FOR_UNHANDLED_EXCEPTIONS': True,
 }
+
+AUTH_USER_MODEL = 'users.UserModel'
 
 ROOT_URLCONF = 'proxy.urls'
 
@@ -205,3 +211,8 @@ SITE_ID = 1
 # CORS
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
+
+# Session Auth
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_NAME = 'drf-sessionid'
+SESSION_COOKIE_AGE = 604800

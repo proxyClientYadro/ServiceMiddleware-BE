@@ -14,7 +14,7 @@ class Logger:
             'proxy_method': request.method,
             'proxy_url': request.get_full_path(),
             'proxy_request_headers': dict(request.headers),
-            'proxy_request_body': request.body,
+            'proxy_request_body': request.data,
         })
 
     def log_proxy_request_core_response(self, response: requests.Response) -> None:
