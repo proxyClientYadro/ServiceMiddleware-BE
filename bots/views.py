@@ -1,5 +1,6 @@
 from typing import Any
 
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -12,6 +13,8 @@ from proxy.decorators import handle_json_decode_error
 
 class BotView(APIView):
     """Returns the list of existing bots or details for a specific bot"""
+
+    permission_classes = (IsAuthenticated,)
 
     @handle_json_decode_error
     def get(self, request: Request, *args: Any, **kwargs: dict) -> Response:

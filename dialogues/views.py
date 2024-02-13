@@ -1,6 +1,7 @@
 from typing import Any
 from urllib.request import Request
 
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -14,6 +15,8 @@ class BaseView(APIView):
     Base class for common CRUD operations.
     Subclasses should define the `get_endpoint` method.
     """
+
+    permission_classes = (IsAuthenticated,)
 
     @handle_json_decode_error
     def handle_request(self, request: Request, endpoint_suffix: str, *args: Any, **kwargs: dict) -> Response:
@@ -31,6 +34,8 @@ class BaseView(APIView):
 
 class DialoguesView(BaseView):
     """View for dialogues CRUD operations"""
+
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request: Request, *args: Any, **kwargs: dict) -> Response:
         return self.handle_request(request=request, endpoint_suffix='', *args, **kwargs)
