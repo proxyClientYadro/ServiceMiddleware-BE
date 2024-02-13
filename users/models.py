@@ -2,6 +2,7 @@ import uuid
 from typing import Optional
 
 from django.contrib.auth.models import AbstractBaseUser
+from django.core.validators import EmailValidator
 from django.db import models
 
 from users.managers import CustomUserManager
@@ -9,8 +10,8 @@ from users.managers import CustomUserManager
 
 class UserModel(AbstractBaseUser):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    email = models.EmailField(unique=True)
-    password = models.CharField(max_length=128)
+    email = models.EmailField(unique=True, validators=[EmailValidator])
+    password = models.CharField(max_length=12)
     access_token = models.CharField(max_length=255, blank=True, null=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
