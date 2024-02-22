@@ -49,21 +49,7 @@ class UserRegistrationView(BaseUserOperationView, CreateAPIView):
     authentication_classes = []
 
     def post(self, request: Request, *args: Any, **kwargs: dict) -> Response:
-        response = self.handle_request(request=request)
-        return self._create_user_or_return_error(response=response, request=request, *args, **kwargs)
-
-    def _create_user_or_return_error(self,
-                                     response: Response,
-                                     request: Request,
-                                     *args: Any,
-                                     **kwargs: dict) -> Response:
-        response_status_code = response.status_code
-        if response_status_code == 200:
-            return self.create(request=request, *args, **kwargs)
-        elif response_status_code == 409:
-            return Response(data={'error': 'Пользователь уже зарегистрирован'}, status=status.HTTP_409_CONFLICT)
-        else:
-            return Response(status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        return self.handle_request(request=request)
 
 
 class LoginView(BaseUserOperationView):
@@ -74,49 +60,23 @@ class LoginView(BaseUserOperationView):
     authentication_classes = []
 
     def post(self, request: Request, *args: Any, **kwargs: dict) -> Response:
-        serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid():
-            response = self.handle_request(request=request)
-            return self._login_or_unprocessable_entity(response=response, request=request)
-
-    @staticmethod
-    def _login_or_unprocessable_entity(response: Response, request: Request) -> Response:
-        if response.status_code == 200:
-            user: UserModel = authenticate(request, email=request.data.get('email'),
-                                           password=request.data.get('password'))
-            login(request=request, user=user)
-            user.set_access_token(access_token=response.data['result'].get('access_token'))
-            return Response(status=status.HTTP_200_OK)
-        else:
-            return Response(status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        return self.handle_request(request=request)
 
 
 class LogoutView(BaseUserOperationView):
     """Logout user from the app and delete acces_token from the third-party service"""
 
     endpoint = 'users/logout'
-    permission_classes = (IsAuthenticated,)
 
     def post(self, request: Request, *args: Any, **kwargs: dict) -> Response:
-        response = self.handle_request(request=request)
-        return self._logout_or_unprocessable_entity(response=response, request=request)
-
-    @staticmethod
-    def _logout_or_unprocessable_entity(response: Response, request: Request) -> Response:
-        if response.status_code == 204:
-            user = UserModel.objects.get(uuid=request.user.uuid)
-            user.set_access_token(access_token=None)
-            logout(request=request)
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        else:
-            return Response(status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        return self.handle_request(request=request)
 
 
 class EmailVerificationView(BaseUserOperationView):
     """Email verification view"""
 
     endpoint: str = 'email-verification/verify'
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (AllowAny,)
 
     def post(self, request: Request, *args: Any, **kwargs: dict) -> Response:
         return self.handle_request(request=request)
@@ -135,7 +95,6 @@ class EmailVerificationResendView(EmailVerificationView):
     """Resend email verification"""
 
     endpoint = 'users/email-verification/resend'
-    permission_classes = (IsAuthenticated,)
 
     def post(self, request: Request, *args: Any, **kwargs: dict) -> Response:
         return self.handle_request(request=request)
@@ -145,7 +104,6 @@ class EmailVerificationVerifyView(EmailVerificationView):
     """Verify the email"""
 
     endpoint = 'users/email-verification/verify'
-    permission_classes = (IsAuthenticated,)
 
     def post(self, request: Request, *args: Any, **kwargs: dict) -> Response:
         return self.handle_request(request=request)
