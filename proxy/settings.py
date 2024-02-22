@@ -10,7 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 from pathlib import Path
-
+import pymysql
 import environ
 from dotenv import load_dotenv
 
@@ -39,6 +39,8 @@ env = environ.Env(
     # Logging
     IS_NEED_LOGGER=bool,
 )
+
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -165,6 +167,8 @@ CACHES = {
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
+
+# pymysql.install_as_MySQLdb()
 
 DATABASES = {
     'default': {
