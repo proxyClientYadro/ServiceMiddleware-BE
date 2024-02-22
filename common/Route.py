@@ -41,7 +41,9 @@ class Route:
         return session.send(request=prepared_request)
 
     def __filter_request_headers(self, headers: dict) -> dict:
-        return {k: v for k, v in headers.items() if k in self.__ALLOWED_CLIENT_HEADERS}
+        headers = {k: v for k, v in headers.items() if k in self.__ALLOWED_CLIENT_HEADERS}
+        headers["Content-Type"] = "application/json"
+        return headers
 
     def _filter_response_headers(self, response: Response) -> None:
         filtered_headers = {k: v for k, v in response.headers.items() if k not in self.__HEADERS_FOR_DELETE}
