@@ -32,6 +32,6 @@ class HandleStatusCodes:
     @staticmethod
     def handle_200_ok(response: Response) -> JsonResponse:
         if response.data:
-            return JsonResponse(data=response.data, status=status.HTTP_200_OK)
+            return JsonResponse(data=response.data, status=response.status_code)
         else:
-            return JsonResponse(data={'status': 'Ok'}, status=status.HTTP_200_OK)
+            return JsonResponse(data=None, status=response.status_code)
