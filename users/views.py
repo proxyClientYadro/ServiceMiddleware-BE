@@ -49,7 +49,21 @@ class UserRegistrationView(BaseUserOperationView, CreateAPIView):
     authentication_classes = []
 
     def post(self, request: Request, *args: Any, **kwargs: dict) -> Response:
-        return self.handle_request(request=request)
+        response = self.handle_request(request=request)
+        return self._create_user_or_handled_error(response=response, request=request, *args, **kwargs)
+
+    def _create_user_or_handled_error(self,
+                                      response: Response,
+                                      request: Request,
+                                      *args: Any,
+                                      **kwargs: dict) -> Response:
+        response_status_code = response.status_code
+        if response_status_code == 200:
+            response: Response = self.create(request=request, *args, **kwargs)
+            response.data = {'result': response.data}
+            return response
+        else:
+            return Response(data=response.data, status=response.status_code)
 
 
 class LoginView(BaseUserOperationView):
@@ -60,23 +74,52 @@ class LoginView(BaseUserOperationView):
     authentication_classes = []
 
     def post(self, request: Request, *args: Any, **kwargs: dict) -> Response:
-        return self.handle_request(request=request)
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            response = self.handle_request(request=request)
+            return self._login_or_handled_error(response=response, request=request)
+
+    def _login_or_handled_error(self, response: Response, request: Request) -> Response:
+
+        if response.status_code == 200:
+            user: UserModel = authenticate(request, email=request.data.get('email'),
+                                           password=request.data.get('password'))
+            login(request=request, user=user)
+            user.set_access_token(access_token=response.data['result'].get('access_token'))
+
+            serializer = self.serializer_class(user)
+            response.data = {'result': serializer.data}
+            return Response(data=response.data, status=response.status_code)
+        else:
+            return Response(data=response.data, status=response.status_code)
 
 
 class LogoutView(BaseUserOperationView):
     """Logout user from the app and delete acces_token from the third-party service"""
 
     endpoint = 'users/logout'
+    permission_classes = (IsAuthenticated,)
 
     def post(self, request: Request, *args: Any, **kwargs: dict) -> Response:
-        return self.handle_request(request=request)
+        response = self.handle_request(request=request)
+        return self._logout_or_handled_error(response=response, request=request)
+
+    @staticmethod
+    def _logout_or_handled_error(response: Response, request: Request) -> Response:
+        if response.status_code == 204:
+            user = UserModel.objects.get(uuid=request.user.uuid)
+            user.set_access_token(access_token=None)
+            logout(request=request)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response(data=response.data, status=response.status_code)
 
 
 class EmailVerificationView(BaseUserOperationView):
     """Email verification view"""
 
     endpoint: str = 'email-verification/verify'
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthenticated,)
 
     def post(self, request: Request, *args: Any, **kwargs: dict) -> Response:
         return self.handle_request(request=request)
@@ -95,6 +138,7 @@ class EmailVerificationResendView(EmailVerificationView):
     """Resend email verification"""
 
     endpoint = 'users/email-verification/resend'
+    permission_classes = (IsAuthenticated,)
 
     def post(self, request: Request, *args: Any, **kwargs: dict) -> Response:
         return self.handle_request(request=request)
@@ -104,6 +148,7 @@ class EmailVerificationVerifyView(EmailVerificationView):
     """Verify the email"""
 
     endpoint = 'users/email-verification/verify'
+    permission_classes = (IsAuthenticated,)
 
     def post(self, request: Request, *args: Any, **kwargs: dict) -> Response:
         return self.handle_request(request=request)
