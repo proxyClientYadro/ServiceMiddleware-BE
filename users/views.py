@@ -50,20 +50,20 @@ class UserRegistrationView(BaseUserOperationView, CreateAPIView):
 
     def post(self, request: Request, *args: Any, **kwargs: dict) -> Response:
         response = self.handle_request(request=request)
-        return self._create_user_or_return_error(response=response, request=request, *args, **kwargs)
+        return self._create_user_or_handled_error(response=response, request=request, *args, **kwargs)
 
-    def _create_user_or_return_error(self,
-                                     response: Response,
-                                     request: Request,
-                                     *args: Any,
-                                     **kwargs: dict) -> Response:
+    def _create_user_or_handled_error(self,
+                                      response: Response,
+                                      request: Request,
+                                      *args: Any,
+                                      **kwargs: dict) -> Response:
         response_status_code = response.status_code
         if response_status_code == 200:
-            return self.create(request=request, *args, **kwargs)
-        elif response_status_code == 409:
-            return Response(data={'error': 'Пользователь уже зарегистрирован'}, status=status.HTTP_409_CONFLICT)
+            response: Response = self.create(request=request, *args, **kwargs)
+            response.data = {'result': response.data}
+            return response
         else:
-            return Response(status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+            return Response(data=response.data, status=response.status_code)
 
 
 class LoginView(BaseUserOperationView):
@@ -77,18 +77,21 @@ class LoginView(BaseUserOperationView):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             response = self.handle_request(request=request)
-            return self._login_or_unprocessable_entity(response=response, request=request)
+            return self._login_or_handled_error(response=response, request=request)
 
-    @staticmethod
-    def _login_or_unprocessable_entity(response: Response, request: Request) -> Response:
+    def _login_or_handled_error(self, response: Response, request: Request) -> Response:
+
         if response.status_code == 200:
             user: UserModel = authenticate(request, email=request.data.get('email'),
                                            password=request.data.get('password'))
             login(request=request, user=user)
             user.set_access_token(access_token=response.data['result'].get('access_token'))
-            return Response(status=status.HTTP_200_OK)
+
+            serializer = self.serializer_class(user)
+            response.data = {'result': serializer.data}
+            return Response(data=response.data, status=response.status_code)
         else:
-            return Response(status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+            return Response(data=response.data, status=response.status_code)
 
 
 class LogoutView(BaseUserOperationView):
@@ -99,17 +102,17 @@ class LogoutView(BaseUserOperationView):
 
     def post(self, request: Request, *args: Any, **kwargs: dict) -> Response:
         response = self.handle_request(request=request)
-        return self._logout_or_unprocessable_entity(response=response, request=request)
+        return self._logout_or_handled_error(response=response, request=request)
 
     @staticmethod
-    def _logout_or_unprocessable_entity(response: Response, request: Request) -> Response:
+    def _logout_or_handled_error(response: Response, request: Request) -> Response:
         if response.status_code == 204:
             user = UserModel.objects.get(uuid=request.user.uuid)
             user.set_access_token(access_token=None)
             logout(request=request)
             return Response(status=status.HTTP_204_NO_CONTENT)
         else:
-            return Response(status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+            return Response(data=response.data, status=response.status_code)
 
 
 class EmailVerificationView(BaseUserOperationView):
