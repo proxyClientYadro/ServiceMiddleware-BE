@@ -49,7 +49,21 @@ class UserRegistrationView(BaseUserOperationView, CreateAPIView):
     authentication_classes = []
 
     def post(self, request: Request, *args: Any, **kwargs: dict) -> Response:
-        return self.handle_request(request=request)
+        response = self.handle_request(request=request)
+        return self._create_user_or_handled_error(response=response, request=request, *args, **kwargs)
+
+    @staticmethod
+    def _create_user_or_handled_error(
+            response: Response,
+            request: Request,
+            *args: Any,
+            **kwargs: dict
+    ) -> Response:
+        response_status_code = response.status_code
+        if response_status_code == 200:
+            return response
+        else:
+            return Response(data=response.data, status=response.status_code)
 
 
 class LoginView(BaseUserOperationView):
@@ -60,7 +74,25 @@ class LoginView(BaseUserOperationView):
     authentication_classes = []
 
     def post(self, request: Request, *args: Any, **kwargs: dict) -> Response:
-        return self.handle_request(request=request)
+        response = self.handle_request(request=request)
+        return self._login_or_handled_error(response=response, request=request)
+
+    def _login_or_handled_error(self, response: Response, request: Request) -> Response:
+
+        if response.status_code == 200:
+            user: UserModel = authenticate(request, email=request.data.get('email'),
+                                           password=request.data.get('password'))
+            login(request=request, user=user)
+            print(response.data['result'].get('access_token'))
+            user.set_access_token(access_token=response.data['result'].get('access_token'))
+
+            serializer = self.serializer_class(user)
+            print(serializer.data)
+            response.data = {'result': serializer.data}
+
+            return Response(data=response.data, status=response.status_code)
+        else:
+            return Response(data=response.data, status=response.status_code)
 
 
 class LogoutView(BaseUserOperationView):
@@ -69,7 +101,18 @@ class LogoutView(BaseUserOperationView):
     endpoint = 'users/logout'
 
     def post(self, request: Request, *args: Any, **kwargs: dict) -> Response:
-        return self.handle_request(request=request)
+        response = self.handle_request(request=request)
+        return self._logout_or_handled_error(response=response, request=request)
+
+    @staticmethod
+    def _logout_or_handled_error(response: Response, request: Request) -> Response:
+        if response.status_code == 204:
+            user = UserModel.objects.get(uuid=request.user.uuid)
+            user.set_access_token(access_token=None)
+            logout(request=request)
+            return Response(data=response.data, status=response.status_code)
+        else:
+            return Response(data=response.data, status=response.status_code)
 
 
 class EmailVerificationView(BaseUserOperationView):
