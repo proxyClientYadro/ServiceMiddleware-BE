@@ -229,3 +229,4 @@ CORS_ALLOW_CREDENTIALS = True
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_NAME = 'drf-sessionid'
 SESSION_COOKIE_AGE = 604800
+SESSION_COOKIE_HTTPONLY = False
