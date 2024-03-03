@@ -52,15 +52,15 @@ class UserRegistrationView(BaseUserOperationView, CreateAPIView):
         response = self.handle_request(request=request)
         return self._create_user_or_handled_error(response=response, request=request, *args, **kwargs)
 
-    def _create_user_or_handled_error(self,
-                                      response: Response,
-                                      request: Request,
-                                      *args: Any,
-                                      **kwargs: dict) -> Response:
+    @staticmethod
+    def _create_user_or_handled_error(
+            response: Response,
+            request: Request,
+            *args: Any,
+            **kwargs: dict
+    ) -> Response:
         response_status_code = response.status_code
         if response_status_code == 200:
-            response: Response = self.create(request=request, *args, **kwargs)
-            response.data = {'result': response.data}
             return response
         else:
             return Response(data=response.data, status=response.status_code)
@@ -110,7 +110,7 @@ class LogoutView(BaseUserOperationView):
             user = UserModel.objects.get(uuid=request.user.uuid)
             user.set_access_token(access_token=None)
             logout(request=request)
-            return Response(status=status.HTTP_204_NO_CONTENT)
+            return Response(data=response.data, status=response.status_code)
         else:
             return Response(data=response.data, status=response.status_code)
 
