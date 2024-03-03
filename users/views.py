@@ -74,8 +74,10 @@ class LoginView(BaseUserOperationView):
     authentication_classes = []
 
     def post(self, request: Request, *args: Any, **kwargs: dict) -> Response:
-        response = self.handle_request(request=request)
-        return self._login_or_handled_error(response=response, request=request)
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            response = self.handle_request(request=request)
+            return self._login_or_handled_error(response=response, request=request)
 
     def _login_or_handled_error(self, response: Response, request: Request) -> Response:
 
@@ -83,13 +85,10 @@ class LoginView(BaseUserOperationView):
             user: UserModel = authenticate(request, email=request.data.get('email'),
                                            password=request.data.get('password'))
             login(request=request, user=user)
-            print(response.data['result'].get('access_token'))
             user.set_access_token(access_token=response.data['result'].get('access_token'))
 
             serializer = self.serializer_class(user)
-            print(serializer.data)
             response.data = {'result': serializer.data}
-
             return Response(data=response.data, status=response.status_code)
         else:
             return Response(data=response.data, status=response.status_code)
@@ -99,6 +98,7 @@ class LogoutView(BaseUserOperationView):
     """Logout user from the app and delete acces_token from the third-party service"""
 
     endpoint = 'users/logout'
+    permission_classes = (IsAuthenticated,)
 
     def post(self, request: Request, *args: Any, **kwargs: dict) -> Response:
         response = self.handle_request(request=request)
@@ -119,7 +119,7 @@ class EmailVerificationView(BaseUserOperationView):
     """Email verification view"""
 
     endpoint: str = 'email-verification/verify'
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthenticated,)
 
     def post(self, request: Request, *args: Any, **kwargs: dict) -> Response:
         return self.handle_request(request=request)
@@ -138,6 +138,7 @@ class EmailVerificationResendView(EmailVerificationView):
     """Resend email verification"""
 
     endpoint = 'users/email-verification/resend'
+    permission_classes = (IsAuthenticated,)
 
     def post(self, request: Request, *args: Any, **kwargs: dict) -> Response:
         return self.handle_request(request=request)
@@ -147,6 +148,7 @@ class EmailVerificationVerifyView(EmailVerificationView):
     """Verify the email"""
 
     endpoint = 'users/email-verification/verify'
+    permission_classes = (IsAuthenticated,)
 
     def post(self, request: Request, *args: Any, **kwargs: dict) -> Response:
         return self.handle_request(request=request)
